@@ -5,3 +5,6 @@ output/
 runs/
 .ultralytics/
 *.pt
+.env
+database/
+

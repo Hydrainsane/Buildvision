@@ -1,12 +1,19 @@
 import json
 import os
-from google import genai
 import time
+from dotenv import load_dotenv
+from google import genai
+from database import save_incident   
 
 # ============================================
 # PUT YOUR API KEY HERE
 # ============================================
-API_KEY = "AIzaSyCyfgy8AgrK1u4e5T3p6DH27jMQFKM8ff0"
+load_dotenv()
+
+API_KEY = os.getenv("GEMINI_API_KEY")
+
+if not API_KEY:
+    raise ValueError("GEMINI_API_KEY not found in .env")
 
 client = genai.Client(api_key=API_KEY)
 
@@ -16,6 +23,13 @@ client = genai.Client(api_key=API_KEY)
 
 with open("output/analysis.json", "r") as f:
     analysis = json.load(f)
+
+    workers = analysis["workers"]
+    helmet = analysis["helmet_compliance"]
+    vest = analysis["vest_compliance"]
+    mask = analysis["mask_compliance"]
+    score = analysis["safety_score"]
+    risk = analysis["risk"]
 
 prompt = f"""
 You are an experienced Construction Site Safety Inspector.
@@ -59,16 +73,15 @@ for attempt in range(3):
         break
 
     except Exception as e:
-        print(f"\nAttempt {attempt+1}/3 failed.")
-        print(f"\n⚠️ Gemini is currently busy.")
-        print(f"Attempt {attempt+1}/3")
+     print(f"\nAttempt {attempt+1}/3 failed.")
+     print(f"Error: {e}")
 
-        if attempt < 2:
-            print("Retrying in 5 seconds...\n")
-            time.sleep(5)
-        else:
-            print("\nFailed after 3 attempts.")
-            exit()
+    if attempt < 2:
+        print("Retrying in 5 seconds...\n")
+        time.sleep(5)
+    else:
+        print("\nFailed after 3 attempts.")
+        exit()
 
 report = response.text
 
@@ -76,6 +89,17 @@ os.makedirs("output", exist_ok=True)
 
 with open("output/report.txt", "w", encoding="utf-8") as f:
     f.write(report)
+
+save_incident(
+    workers,
+    helmet,
+    vest,
+    mask,
+    score,
+    risk,
+    report
+)
+
 
 print("\n========== AI REPORT ==========\n")
 print(report)
