@@ -133,6 +133,21 @@ def camera_loop():
     camera.release()
     print("📷 Camera released")
 
+    status.update({
+    "workers": workers,
+    "helmet_compliance": round(helmet_percent, 2),
+    "mask_compliance": round(mask_percent, 2),
+    "vest_compliance": round(vest_percent, 2),
+    "safety_score": score,
+    "risk_level": risk,
+    "recommendation":
+        "Improve PPE compliance immediately"
+        if risk == "HIGH"
+        else "Maintain safety standards"
+})
+
+print(status)
+
 
 
 
