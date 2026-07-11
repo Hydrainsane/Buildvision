@@ -3,17 +3,21 @@ import sqlite3
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from backend import monitoring
+from fastapi import UploadFile, File
 
 app = FastAPI(title="BuildVision API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://192.168.181.94:5173",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 @app.get("/")
 def home():
@@ -70,3 +74,7 @@ def monitoring_feed():
         monitoring.generate_frames(),
         media_type="multipart/x-mixed-replace; boundary=frame"
     )
+
+@app.post("/monitoring/frame")
+async def upload_frame(file: UploadFile = File(...)):
+    return await monitoring.receive_phone_frame(file)

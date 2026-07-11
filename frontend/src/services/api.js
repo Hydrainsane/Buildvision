@@ -23,9 +23,16 @@ export const api = axios.create({
  * Normalizes Axios errors into a consistent shape the UI can rely on,
  * so every hook/page can handle failures the same way.
  */
-export function toApiError(error) {
-  if (axios.isAxiosError(error)) {
-    if (error.response) {
+     export function toApiError(error) {
+
+    console.log(error);
+
+    if (axios.isAxiosError(error)) {
+
+        console.log(error.response);
+        console.log(error.request);
+
+       if (error.response) {
       return {
         message:
           error.response.data?.detail ||

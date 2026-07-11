@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BuildVision Mobile Camera</title>
+
+    <style>
+        body{
+            background:#111;
+            color:white;
+            font-family:Arial;
+            text-align:center;
+        }
+
+        video{
+            width:95%;
+            max-width:600px;
+            border-radius:12px;
+            margin-top:20px;
+        }
+
+        button{
+            padding:15px 30px;
+            font-size:20px;
+            margin:20px;
+            cursor:pointer;
+        }
+    </style>
+
+</head>
+
+<body>
+
+<h1>📷 BuildVision Mobile Camera</h1>
+
+<video id="video" autoplay playsinline></video>
+
+<br>
+
+<button onclick="startCamera()">
+Start Camera
+</button>
+
+<script>
+
+const video = document.getElementById("video");
+
+async function startCamera(){
+
+    try{
+
+        const stream = await navigator.mediaDevices.getUserMedia({
+            video:{
+                facingMode:"environment"
+            },
+            audio:false
+        });
+
+        video.srcObject = stream;
+
+        await video.play();
+
+        console.log("Camera Started");
+
+        sendFrames();
+
+    }
+
+    catch(err){
+
+        alert(err);
+
+        console.error(err);
+
+    }
+
+}
+
+function sendFrames(){
+
+    const canvas=document.createElement("canvas");
+
+    const ctx=canvas.getContext("2d");
+
+    setInterval(async()=>{
+
+        if(video.videoWidth===0)
+            return;
+
+        canvas.width=video.videoWidth;
+        canvas.height=video.videoHeight;
+
+        ctx.drawImage(video,0,0);
+
+        canvas.toBlob(async(blob)=>{
+
+            const form=new FormData();
+
+            form.append("file",blob,"frame.jpg");
+
+            try{
+
+                const res=await fetch(
+                    "http://192.168.181.94:8000/monitoring/frame",
+                    {
+                        method:"POST",
+                        body:form
+                    }
+                );
+
+                console.log(await res.text());
+
+            }
+
+            catch(err){
+
+                console.error(err);
+
+            }
+
+        },"image/jpeg",0.7);
+
+    },200);
+
+}
+
+</script>
+
+</body>
+</html>
